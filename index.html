@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SehatKu — Self-Assessment Pasien</title>
+<style>
+:root{--bg:#f3f4fb;--ink:#1d1c3a;--side:#2b2a5c;--ac:#5b5bd6;--ac2:#e9e9fb;--ok:#1f8a5b;--warn:#f5b942;--bad:#c23b4a;--mut:#6b6a8c;--ln:#d9d9ee;--w:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#14132b;--ink:#ecebff;--side:#0e0d20;--ac:#8d8dff;--ac2:#27264f;--mut:#a3a2c8;--ln:#35346a;--w:#1d1c3d}}
+*{box-sizing:border-box}html,body{margin:0}
+body{font:15px/1.55 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh}
+h1,h2,h3{font-family:Georgia,"Palatino Linotype",serif;margin:.2em 0 .4em;line-height:1.2}
+h1{font-size:1.7rem}h2{font-size:1.25rem}h3{font-size:1.05rem}
+nav{width:230px;background:var(--side);color:#fff;padding:22px 14px;position:sticky;top:0;height:100vh;flex-shrink:0}
+nav .logo{font:700 1.4rem Georgia,serif;padding:0 10px 18px}
+nav a{display:block;color:#cfcff5;text-decoration:none;padding:10px 12px;border-radius:8px;margin-bottom:4px}
+nav a.on,nav a:hover{background:rgba(255,255,255,.14);color:#fff}
+nav small{display:block;padding:18px 10px 0;color:#9d9cd0;font-size:.78rem}
+main{flex:1;padding:28px;max-width:860px;margin:0 auto;width:100%}
+.card{background:var(--w);border:1px solid var(--ln);border-radius:12px;padding:18px;margin-bottom:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+.stat b{display:block;font:700 1.9rem Georgia,serif;color:var(--ac)}
+button,.btn{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 18px;background:var(--ac);color:#fff;font-weight:600;text-decoration:none;display:inline-block}
+button.alt,.btn.alt{background:transparent;color:var(--ac);border:1.5px solid var(--ac)}
+button.del{background:transparent;color:var(--bad);border:1.5px solid var(--bad)}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+input[type=text],input[type=number],input[type=date],input[type=password],textarea{width:100%;font:inherit;padding:10px;border:1.5px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink)}
+label.f{display:block;font-weight:600;margin:0 0 4px}
+.q{margin-bottom:22px}.hint{color:var(--mut);font-size:.85rem;margin:0 0 6px}
+.err{color:var(--bad);font-size:.88rem;margin-top:4px}.q.bad input[type=text],.q.bad input[type=number],.q.bad textarea{border-color:var(--bad)}
+.opt{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1.5px solid var(--ln);border-radius:8px;margin-bottom:6px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--ac);background:var(--ac2)}
+.scale{display:flex;gap:6px;flex-wrap:wrap}.scale .opt{flex:1;min-width:84px;flex-direction:column;text-align:center;font-size:.85rem}
+.tag{font-size:.72rem;background:var(--ac2);color:var(--ac);padding:1px 7px;border-radius:99px;margin-left:6px}
+.badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:600;background:var(--ac2);color:var(--ac);margin-right:6px}
+.b-ok{background:#d6f3e5;color:#136b45}.b-warn{background:#fff0c9;color:#7a5600}.b-bad{background:#fbdde1;color:var(--bad)}
+.note{padding:12px 14px;border-radius:8px;background:#fff0c9;color:#5c4200;margin-bottom:14px}
+.note.info{background:var(--ac2);color:var(--ink)}.note.bad{background:#fbdde1;color:#8a1f2c}
+.steps{display:flex;gap:6px;margin:10px 0 18px}.steps i{flex:1;height:6px;border-radius:9px;background:var(--ln)}.steps i.d{background:var(--ac)}
+.tl{border-left:3px solid var(--ln);margin-left:6px;padding-left:16px}.tl div{margin-bottom:12px;position:relative}
+.tl div:before{content:"";position:absolute;left:-23px;top:6px;width:11px;height:11px;border-radius:50%;background:var(--ac)}
+.tl small,.sm{color:var(--mut);font-size:.82rem}
+table{width:100%;border-collapse:collapse}td{padding:7px 4px;border-bottom:1px solid var(--ln);vertical-align:top}td:first-child{color:var(--mut);width:42%}
+.empty{color:var(--mut)}.big{font:700 3rem Georgia,serif;color:var(--ac)}
+footer{margin-top:26px;font-size:.82rem;color:var(--mut)}
+@media(max-width:760px){body{flex-direction:column}nav{width:100%;height:auto;position:sticky;z-index:5;display:flex;gap:4px;padding:8px;overflow:auto}nav .logo,nav small{display:none}nav a{white-space:nowrap;margin:0}main{padding:16px}}
+</style>
+</head>
+<body>
+<nav id="nav">
+  <div class="logo">SehatKu</div>
+  <a href="#/home" data-r="home">Beranda</a>
+  <a href="#/hist" data-r="hist">Riwayat</a>
+  <a href="#/set" data-r="set">Pengaturan</a>
+  <small id="who"></small>
+</nav>
+<main id="app"></main>
+<script>
+const $=s=>document.querySelector(s),A=$('#app');
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const C=Object.assign({api:'https://telehealth.informatikaunimus.site/api'},JSON.parse(localStorage.getItem('sehatku')||'{}'));
+const DT=x=>x?new Date(x).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'';
+const g=(o,...k)=>{for(const x of k)if(o&&o[x]!==undefined&&o[x]!==null)return o[x]};
+let S={ans:{},errs:{},sec:0,form:null,id:null};
+const FC={};
+
+async function api(p,{method='GET',body}={}){
+  let r,j;
+  try{r=await fetch(C.api+p,{method,headers:{Authorization:'Bearer '+C.token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})}
+  catch(e){throw{status:0,message:'Tidak dapat terhubung ke server. Periksa koneksi internet dan alamat API di Pengaturan.'}}
+  try{j=await r.json()}catch(e){throw{status:r.status,message:'Server tidak mengembalikan JSON. Pastikan alamat API diakhiri /api.'}}
+  if(!j.success)throw{status:r.status,...j};
+  return j;
+}
+function errMsg(e){
+  const m={401:'Token tidak valid atau belum diisi. Periksa token di Pengaturan.',403:'Akun ini tidak boleh membuka fitur tersebut.',404:'Data tidak ditemukan atau bukan milik akun ini.',409:'Aksi ini tidak bisa dilakukan karena status laporan sudah berubah (mis. laporan sudah dikirim).'};
+  return (e.status===422||e.status===400)?(e.message||'Data belum valid.'):(m[e.status]?m[e.status]+(e.message?' ('+e.message+')':''):e.message||'Terjadi kesalahan.');
+}
+const note=(t,c='bad')=>`<div class="note ${c}" role="alert">${E(t)}</div>`;
+const foot='<footer><b>Hasil self-assessment bukan diagnosis.</b> Laporan Anda akan ditinjau oleh tenaga kesehatan.</footer>';
+const ready=()=>C.token&&C.nim&&C.nama&&C.kelas;
+const MHS=()=>({nim:C.nim,nama:C.nama,kelas:C.kelas});
+const bcls=k=>({sudah_ditinjau:'b-ok',terkirim:'b-ok',klarifikasi_dijawab:'b-ok',perlu_klarifikasi:'b-warn',menunggu_peninjauan:'b-warn',sedang_ditinjau:'b-warn',draft:'',belum_dikirim:''}[k]||'');
+const badge=s=>s?`<span class="badge ${bcls(s.kode)}">${E(s.label)}</span>`:'';
+
+/* ---------- logika formulir ---------- */
+function vis(c,a){
+  if(!c)return true;
+  if(c.any)return c.any.some(x=>vis(x,a));
+  if(c.all)return c.all.every(x=>vis(x,a));
+  const v=a[c.question],f=v!==undefined&&v!==null&&v!==''&&!(Array.isArray(v)&&!v.length);
+  if('equals' in c)return v===c.equals;
+  if('in' in c)return c.in.includes(v);
+  if('includes' in c)return Array.isArray(v)&&v.includes(c.includes);
+  if('filled' in c)return f===c.filled;
+  return true;
+}
+const secs=()=>S.form.sections.filter(s=>vis(s.show_if,S.ans));
+const qs=s=>(s.questions||[]).filter(q=>vis(q.show_if,S.ans));
+const opts=q=>{
+  let o=(q.options||q.pilihan||[]).map(x=>typeof x==='object'?{v:g(x,'value','nilai'),l:x.label,ex:x.exclusive}:{v:x,l:x});
+  if(!o.length&&q.type==='scale')for(let i=g(q,'min')??1;i<=(g(q,'max')??5);i++)o.push({v:i,l:i});
+  return o;
+};
+const filled=v=>v!==undefined&&v!==null&&v!==''&&!(Array.isArray(v)&&!v.length);
+const txt=(q,v)=>{
+  if(!filled(v))return '<i class="empty">Belum diisi</i>';
+  const o=opts(q),L=x=>E((o.find(y=>y.v===x)||{l:x}).l);
+  return Array.isArray(v)?v.map(L).join(', '):L(v)+(g(q,'satuan','unit')?' '+E(g(q,'satuan','unit')):'');
+};
+const qLabel=q=>g(q,'label','pertanyaan','text','question')||q.id;
+const secTitle=s=>g(s,'title','judul','nama','label')||s.id;
+const req=q=>!!g(q,'required','wajib');
+
+function renderQ(q){
+  const id=q.id,v=S.ans[id],t=q.type,o=opts(q),er=S.errs[id],name='q_'+id;
+  const pk=q.data_type==='pengukuran'?'<span class="tag">hasil ukur</span>':'';
+  let h=`<div class="q ${er?'bad':''}"><label class="f" for="${name}">${E(qLabel(q))}${req(q)?' <span aria-label="wajib" style="color:var(--bad)">*</span>':''}${pk}</label>`;
+  if(g(q,'help','bantuan','hint','keterangan'))h+=`<p class="hint">${E(g(q,'help','bantuan','hint','keterangan'))}</p>`;
+  const un=g(q,'satuan','unit');
+  if(t==='single_choice')h+=o.map(x=>`<label class="opt"><input type="radio" name="${name}" data-q="${id}" data-v="${E(x.v)}" ${v===x.v?'checked':''}>${E(x.l)}</label>`).join('');
+  else if(t==='scale')h+=`<div class="scale" role="radiogroup">`+o.map(x=>`<label class="opt"><input type="radio" name="${name}" data-q="${id}" data-v="${E(x.v)}" data-n="1" ${v===x.v?'checked':''}>${E(x.l)}</label>`).join('')+'</div>';
+  else if(t==='multi_choice')h+=o.map(x=>`<label class="opt"><input type="checkbox" data-q="${id}" data-m="${E(x.v)}" data-x="${x.ex?1:0}" ${(v||[]).includes(x.v)?'checked':''}>${E(x.l)}</label>`).join('');
+  else if(t==='textarea')h+=`<textarea id="${name}" rows="3" data-i="${id}" maxlength="${q.max_length||''}">${E(v)}</textarea>`;
+  else if(t==='number')h+=`<div style="display:flex;gap:8px;align-items:center"><input type="number" step="any" id="${name}" data-i="${id}" data-n="1" min="${E(q.min)}" max="${E(q.max)}" value="${E(v)}" placeholder="${q.min!==undefined?q.min+'–'+q.max:''}">${un?`<span>${E(un)}</span>`:''}</div>`;
+  else if(t==='date')h+=`<input type="date" id="${name}" data-i="${id}" value="${E(v)}">`;
+  else h+=`<input type="text" id="${name}" data-i="${id}" maxlength="${q.max_length||''}" value="${E(v)}">`;
+  return h+(er?`<div class="err">${E(er)}</div>`:'')+'</div>';
+}
+document.addEventListener('input',e=>{
+  const i=e.target.dataset.i;if(!i)return;
+  let v=e.target.value;if(v==='')v=null;else if(e.target.dataset.n)v=Number(v);
+  S.ans[i]=v;delete S.errs[i];
+});
+document.addEventListener('change',e=>{
+  const d=e.target.dataset,id=d.q;if(!id)return;
+  if(d.m!==undefined){
+    let a=(S.ans[id]||[]).slice();const q=findQ(id),o=opts(q);
+    if(e.target.checked){
+      if(d.x==='1')a=[d.m];else a=a.filter(x=>!(o.find(y=>y.v===x)||{}).ex).concat(d.m);
+    }else a=a.filter(x=>x!==d.m);
+    S.ans[id]=a;
+  }else S.ans[id]=d.n?Number(d.v):d.v;
+  delete S.errs[id];fill(true);
+});
+const findQ=id=>{for(const s of S.form.sections)for(const q of s.questions||[])if(q.id===id)return q};
+const secOf=id=>secs().findIndex(s=>(s.questions||[]).some(q=>q.id===id));
+const payload=()=>{const a={};S.form.sections.forEach(s=>qs0(s).forEach(q=>{a[q.id]=filled(S.ans[q.id])?S.ans[q.id]:null}));return a};
+const qs0=s=>vis(s.show_if,S.ans)?qs(s):[];
+
+/* ---------- halaman ---------- */
+const P={};
+P.set=async()=>{
+  A.innerHTML=`<h1>Pengaturan</h1><div class="card"><h3>Identitas mahasiswa</h3>
+  <p class="hint">Dikirim bersama setiap pengisian agar dosen dapat memeriksa pekerjaan Anda.</p>
+  <div class="q"><label class="f">NIM</label><input type="text" id="s_nim" value="${E(C.nim)}"></div>
+  <div class="q"><label class="f">Nama lengkap</label><input type="text" id="s_nama" value="${E(C.nama)}"></div>
+  <div class="q"><label class="f">Kelas</label><input type="text" id="s_kelas" value="${E(C.kelas)}" placeholder="TI-5A"></div></div>
+  <div class="card"><h3>Koneksi API</h3>
+  <div class="q"><label class="f">Token pasien</label><input type="password" id="s_token" value="${E(C.token)}" placeholder="tlh_pasien_..."><p class="hint">Disimpan hanya di browser Anda (localStorage), tidak ada di kode.</p></div>
+  <div class="q"><label class="f">Alamat API</label><input type="text" id="s_api" value="${E(C.api)}"></div>
+  <button id="s_ok">Simpan dan uji koneksi</button><div id="s_msg" style="margin-top:12px"></div></div>${foot}`;
+  $('#s_ok').onclick=async()=>{
+    Object.assign(C,{nim:$('#s_nim').value.trim().toUpperCase(),nama:$('#s_nama').value.trim(),kelas:$('#s_kelas').value.trim(),token:$('#s_token').value.trim(),api:$('#s_api').value.trim().replace(/\/$/,'')});
+    localStorage.setItem('sehatku',JSON.stringify(C));who();
+    if(!ready()){$('#s_msg').innerHTML=note('NIM, nama, kelas, dan token wajib diisi.');return}
+    try{const r=await api('/me?nim='+encodeURIComponent(C.nim));$('#s_msg').innerHTML=note('Terhubung sebagai '+r.data.nama+'.','info');setTimeout(()=>location.hash='#/home',900)}
+    catch(e){$('#s_msg').innerHTML=note(errMsg(e))}
+  };
+};
+P.home=async()=>{
+  const [me,fm,uts]=await Promise.all([api('/me?nim='+C.nim),api('/forms'),api('/uts/'+C.nim).catch(()=>null)]);
+  const m=me.data,s=m.statistik||{};
+  A.innerHTML=`<h1>Halo, ${E(m.nama)}</h1><p class="sm">No. RM ${E(m.no_rm)} · Mahasiswa ${E(C.nama)} (${E(C.nim)})</p>
+  ${s.perlu_klarifikasi?`<div class="note">Ada ${s.perlu_klarifikasi} laporan yang menunggu jawaban klarifikasi. <a href="#/hist">Lihat riwayat</a></div>`:''}
+  <div class="row"><div class="card stat"><b>${s.total||0}</b>Total laporan</div><div class="card stat"><b>${s.draf||0}</b>Draf</div><div class="card stat"><b>${s.menunggu||0}</b>Menunggu peninjauan</div><div class="card stat"><b>${s.sudah_ditinjau||0}</b>Sudah ditinjau</div></div>
+  <h2>Pilih formulir</h2>`+(fm.data||[]).map(f=>`<div class="card"><h3>${E(f.judul||f.title)}</h3><p class="sm">${E(g(f,'deskripsi','description')||'')}</p><p class="sm">Perkiraan ${E(g(f,'estimasi_menit','menit')||'?')} menit</p><a class="btn" href="#/form/${E(f.id)}">Mulai self-assessment</a></div>`).join('')+
+  (uts?`<h2>Kemajuan tugas UTS</h2><div class="card"><b>${uts.data.bukti_fitur.tercapai}/${uts.data.bukti_fitur.total}</b> bukti fitur terdeteksi · penilaian: ${badge(uts.data.penilaian&&uts.data.penilaian.status)}<table>${uts.data.bukti_fitur.daftar.map(d=>`<tr><td>${d.tercapai?'Tercapai':'Belum'}</td><td>${E(d.label)}</td></tr>`).join('')}</table></div>`:'')+foot;
+};
+P.form=async id=>{
+  const f=(await api('/forms/'+id)).data;S.form=f;
+  const pet=g(f,'petunjuk','instructions'),ps=g(f,'persetujuan','consent');
+  const list=Array.isArray(pet)?pet:(pet?[pet]:[]);
+  A.innerHTML=`<h1>${E(g(f,'judul','title'))}</h1><p>${E(g(f,'deskripsi','description')||'')}</p>
+  <div class="card"><h3>Sebelum mengisi</h3><ul>${list.map(x=>`<li>${E(typeof x==='object'?g(x,'teks','text'):x)}</li>`).join('')}</ul></div>
+  <div class="card"><h3>Persetujuan penggunaan data</h3><label class="opt"><input type="checkbox" id="cons">${E(typeof ps==='object'&&ps?g(ps,'teks','text','label'):ps||'Saya menyetujui penggunaan data ini untuk keperluan konsultasi.')}</label>
+  <button id="go" disabled>Mulai mengisi</button><div id="m" style="margin-top:10px"></div></div>${foot}`;
+  $('#cons').onchange=e=>$('#go').disabled=!e.target.checked;
+  $('#go').onclick=async()=>{try{const r=await api('/assessments',{method:'POST',body:{form_id:id,persetujuan:true,mahasiswa:MHS()}});S.ans={};S.errs={};S.sec=0;S.id=r.data.id;location.hash='#/fill/'+r.data.id}catch(e){$('#m').innerHTML=note(errMsg(e))}};
+};
+async function load(id){
+  const d=(await api('/assessments/'+id)).data;
+  if(d.status_pengiriman&&d.status_pengiriman.kode!=='draft'){location.hash='#/status/'+id;return false}
+  const fid=g(d.form,'id')||d.form_id;
+  S.form=FC[fid]=FC[fid]||(await api('/forms/'+fid)).data;
+  if(S.id!==id||!Object.keys(S.ans).length)S.ans=d.answers||{};
+  S.id=id;return true;
+}
+function fill(keep){
+  const ss=secs();if(S.sec>=ss.length)S.sec=ss.length-1;
+  const s=ss[S.sec];
+  A.innerHTML=`<h1>${E(g(S.form,'judul','title'))}</h1><div class="steps" aria-label="Bagian ${S.sec+1} dari ${ss.length}">${ss.map((_,i)=>`<i class="${i<=S.sec?'d':''}"></i>`).join('')}</div>
+  <div class="card"><h2>${E(secTitle(s))}</h2><p class="sm">Bagian ${S.sec+1} dari ${ss.length}</p>${qs(s).map(renderQ).join('')}
+  <div id="m"></div><div class="row"><button class="alt" id="sv">Simpan draf</button><button id="nx">${S.sec<ss.length-1?'Lanjut':'Periksa jawaban'}</button></div>
+  ${S.sec>0?'<p><a href="#" id="bk">Kembali ke bagian sebelumnya</a></p>':''}</div>${foot}`;
+  if(keep)scrollTo(0,scrollY);
+  const save=async()=>{try{await api('/assessments/'+S.id,{method:'PATCH',body:{answers:payload()}});return true}catch(e){if(e.errors)S.errs=Object.assign(S.errs,e.errors);$('#m').innerHTML=note(errMsg(e));return false}};
+  $('#sv').onclick=async()=>{if(await save()){$('#m').innerHTML=note('Draf tersimpan.','info')}};
+  $('#nx').onclick=async()=>{
+    S.errs={};let bad=0;
+    qs(s).forEach(q=>{if(req(q)&&!filled(S.ans[q.id])){S.errs[q.id]=g(q,'pesan_wajib')||'Pertanyaan ini wajib diisi.';bad++}});
+    if(bad){fill();return}
+    if(!await save()){fill();return}
+    if(S.sec<ss.length-1){S.sec++;fill();scrollTo(0,0)}else location.hash='#/review/'+S.id;
+  };
+  if($('#bk'))$('#bk').onclick=e=>{e.preventDefault();S.sec--;fill();scrollTo(0,0)};
+}
+P.fill=async id=>{if(await load(id))fill()};
+P.review=async id=>{
+  if(!await load(id))return;
+  let v;try{v=(await api('/forms/'+S.form.id+'/validate',{method:'POST',body:{nim:C.nim,answers:payload()}})).data}catch(e){A.innerHTML=note(errMsg(e));return}
+  const er=v.errors||{},keys=Object.keys(er),k=v.kelengkapan||{};
+  A.innerHTML=`<h1>Periksa jawaban</h1><div class="card"><b>Kelengkapan: ${E(k.persen??'')}%</b>${k.label?' · '+E(k.label):''}
+  ${keys.length?`<div class="note" style="margin-top:12px"><b>Masih perlu diperbaiki:</b><ul>${keys.map(x=>`<li><a href="#/fill/${id}" data-go="${x}">${E(er[x])}</a></li>`).join('')}</ul></div>`:'<div class="note info" style="margin-top:12px">Semua jawaban wajib sudah terisi. Anda siap mengirim.</div>'}</div>
+  <div class="card"><h3>Ringkasan jawaban</h3><table>${secs().map(s=>qs(s).map(q=>`<tr><td>${E(qLabel(q))}</td><td>${txt(q,S.ans[q.id])}</td></tr>`).join('')).join('')}</table></div>
+  <div id="m"></div><div class="row"><a class="btn alt" href="#/fill/${id}" id="ub">Ubah jawaban</a><button id="kr" ${v.valid?'':'disabled'}>Kirim jawaban</button></div>${foot}`;
+  document.querySelectorAll('[data-go]').forEach(a=>a.onclick=()=>{S.sec=Math.max(0,secOf(a.dataset.go))});
+  $('#kr').onclick=async()=>{try{const r=await api('/assessments/'+id+'/submit',{method:'POST'});S.ans={};FC.last=r;location.hash='#/done/'+id}catch(e){if(e.errors){S.errs=e.errors;$('#m').innerHTML=note(errMsg(e)+' '+Object.values(e.errors).join(' '))}else $('#m').innerHTML=note(errMsg(e))}};
+};
+P.done=async id=>{
+  const r=FC.last&&FC.last.data?FC.last:await api('/assessments/'+id);
+  A.innerHTML=`<div class="card" style="text-align:center"><div class="big">Terkirim</div><h2>Formulir Anda telah diterima</h2><p>Nomor laporan <b>${E(id)}</b></p>${badge(r.data.status_peninjauan)}<p class="sm">${E(r.message||'')}</p>
+  <div class="row"><a class="btn alt" href="#/hasil/${id}">Lihat ringkasan</a><a class="btn" href="#/status/${id}">Pantau status</a></div><p><a href="#/home">Selesai</a></p></div>${foot}`;
+  FC.last=null;
+};
+P.hist=async()=>{
+  const f=sessionStorage.getItem('hf')||'';
+  const r=await api('/assessments?nim='+encodeURIComponent(C.nim));
+  const items=(r.data||[]).filter(x=>!f||(f==='draft'?x.status_pengiriman.kode==='draft':x.status_peninjauan.kode===f));
+  const chips=[['','Semua'],['draft','Draf'],['menunggu_peninjauan','Menunggu'],['sedang_ditinjau','Diproses'],['perlu_klarifikasi','Perlu klarifikasi'],['sudah_ditinjau','Sudah ditinjau']];
+  A.innerHTML=`<h1>Riwayat</h1><div style="margin-bottom:14px">${chips.map(c=>`<button class="${c[0]===f?'':'alt'}" style="padding:5px 12px;margin:0 4px 4px 0" data-f="${c[0]}">${c[1]}</button>`).join('')}</div>`+
+  (items.length?items.map(x=>{const d=x.status_pengiriman.kode==='draft';return `<div class="card"><h3>${E(x.judul||x.id)}</h3><p class="sm">${E(x.id)} · ${E(x.form&&x.form.judul)} · ${DT(x.dikirim_pada||x.dibuat_pada)}</p>
+  ${badge(x.status_pengiriman)}${badge(x.status_peninjauan)}${x.klarifikasi_menunggu?'<div class="note" style="margin-top:8px">Petugas meminta klarifikasi.</div>':''}
+  <div class="row" style="margin-top:10px">${d?`<a class="btn" href="#/fill/${x.id}">Lanjutkan pengisian</a><button class="del" data-d="${x.id}">Hapus draf</button>`:`<a class="btn alt" href="#/hasil/${x.id}">Lihat ringkasan</a><a class="btn" href="#/status/${x.id}">${x.klarifikasi_menunggu?'Jawab klarifikasi':x.ada_tindak_lanjut?'Lihat tindak lanjut':'Pantau status'}</a>`}</div></div>`}).join(''):'<p class="empty">Belum ada laporan. Mulai dari Beranda.</p>')+foot;
+  A.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{sessionStorage.setItem('hf',b.dataset.f);P.hist()});
+  A.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Hapus draf ini?'))return;try{await api('/assessments/'+b.dataset.d,{method:'DELETE'});P.hist()}catch(e){A.insertAdjacentHTML('afterbegin',note(errMsg(e)))}});
+};
+P.hasil=async id=>{
+  const h=(await api('/assessments/'+id+'/hasil')).data,k=h.kelengkapan||{},sk=h.skor,pb=h.perubahan||(h.hasil&&h.hasil.perubahan);
+  A.innerHTML=`<h1>${E(h.judul||'Ringkasan pengisian')}</h1><p class="sm">${E(id)} · Kelengkapan ${E(k.persen??'')}% (${E(k.label||'')})</p>
+  ${sk?`<div class="card"><h3>Skor</h3><div class="big">${sk.total}<span class="sm"> / ${sk.maks}</span></div>${badge(sk.kategori)}<p>${E(sk.keterangan||'')}</p></div>`:''}
+  ${pb&&pb.perubahan?`<div class="card"><h3>Perubahan dari laporan sebelumnya</h3>${pb.skor?`<p>Skor ${pb.skor.sebelumnya} → <b>${pb.skor.sekarang}</b> (${pb.skor.selisih>0?'+':''}${pb.skor.selisih})</p>`:''}<table>${pb.perubahan.map(c=>`<tr><td>${E(c.label)}</td><td>${E(c.sebelumnya)} → <b>${E(c.sekarang)}</b></td></tr>`).join('')}</table></div>`:''}
+  <div class="card"><h3>Jawaban Anda</h3><table>${(h.ringkasan||[]).map(r=>`<tr><td>${E(r.label)}${r.data_type==='pengukuran'?'<span class="tag">ukur</span>':''}</td><td>${r.terisi?E(r.jawaban_teks)+(r.satuan?' '+E(r.satuan):''):'<i class="empty">Belum diisi</i>'}</td></tr>`).join('')}</table></div>
+  <div class="note"><b>Keterbatasan hasil.</b> ${E(h.keterbatasan||'Hasil self-assessment bukan diagnosis.')}</div>
+  <div class="note info"><b>Langkah berikutnya.</b> ${E(h.langkah_berikutnya||'')}</div><a class="btn" href="#/status/${id}">Pantau status laporan</a>${foot}`;
+};
+P.status=async id=>{
+  const s=(await api('/assessments/'+id+'/status')).data,tl=s.tindak_lanjut,kl=s.klarifikasi_menunggu||[];
+  A.innerHTML=`<h1>Status laporan ${E(id)}</h1><div class="card"><table><tr><td>Pengiriman</td><td>${badge(s.status_pengiriman)}</td></tr><tr><td>Peninjauan</td><td>${badge(s.status_peninjauan)}</td></tr></table><div class="note info" style="margin-top:12px">${E(s.pesan||'')}</div></div>
+  ${kl.map(k=>`<div class="card"><h3>Pertanyaan dari petugas</h3><p>${E(k.pertanyaan)}</p><textarea rows="3" id="kl_${k.id}" placeholder="Tulis jawaban Anda"></textarea><div id="km_${k.id}"></div><button data-k="${k.id}" style="margin-top:8px">Kirim jawaban</button></div>`).join('')}
+  ${tl?`<div class="card"><h3>Tindak lanjut</h3>${badge(tl.jenis)}<p>${E(tl.arahan)}</p>${tl.jadwal_konsultasi?`<div class="note info"><b>Jadwal konsultasi:</b> ${DT(tl.jadwal_konsultasi)}</div>`:''}<p class="sm">Dicatat oleh ${E(tl.dicatat_oleh&&tl.dicatat_oleh.nama)} · ${DT(tl.dicatat_pada)}</p></div>`:''}
+  <div class="card"><h3>Riwayat status</h3><div class="tl">${[...(s.timeline||[])].reverse().map(t=>`<div>${E(t.keterangan||t.event)}<br><small>${DT(t.waktu)}</small></div>`).join('')}</div></div>
+  <div class="row"><a class="btn alt" href="#/hasil/${id}">Lihat ringkasan</a><button id="rl">Muat ulang status</button></div>${foot}`;
+  $('#rl').onclick=()=>P.status(id);
+  A.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,j=$('#kl_'+k).value.trim();
+    if(!j){$('#km_'+k).innerHTML=note('Jawaban tidak boleh kosong.');return}
+    try{await api(`/assessments/${id}/clarifications/${k}/reply`,{method:'POST',body:{jawaban:j}});P.status(id)}catch(e){$('#km_'+k).innerHTML=note(errMsg(e))}
+  });
+};
+
+/* ---------- router ---------- */
+function who(){$('#who').textContent=C.nim?C.nama+' · '+C.nim:'Belum ada identitas'}
+async function route(){
+  const [,r,id]=(location.hash||'#/home').split('/');
+  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.r===(r==='fill'||r==='review'||r==='form'?'home':r==='hasil'||r==='status'||r==='done'?'hist':r)));
+  if(r!=='set'&&!ready()){location.hash='#/set';return}
+  A.innerHTML='<p class="empty">Memuat…</p>';
+  try{await (P[r]||P.home)(id)}catch(e){A.innerHTML=note(errMsg(e))+'<a class="btn alt" href="#/home">Kembali ke beranda</a>'}
+}
+addEventListener('hashchange',route);who();route();
+</script>
+</body>
+</html>
